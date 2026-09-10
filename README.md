@@ -1,5 +1,8 @@
-# wip
-wheeled inverted pendulum
+# WIP: Log de Actualizaciones
+## Wheeled Inverted Pendulum
+
+
+### 31 de agosto 2026
 
 Por el momento:
 - opción de perturbar la posición del robot a través del teclado
@@ -16,3 +19,5 @@ Siguientes pasos:
 - controlador para el desplazamiento en x (modo auto: usuario elige x_ref)
 - implementar otros tipos de controladores
 - agregar variables como inercia
+
+### 10 de septiembre 2026
