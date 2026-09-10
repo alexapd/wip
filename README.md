@@ -21,3 +21,5 @@ Siguientes pasos:
 - agregar variables como inercia
 
 ### 10 de septiembre 2026
+separación fuerza del actuador y fx_dist (disturbance por usuario)
+

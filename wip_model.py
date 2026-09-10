@@ -24,7 +24,8 @@ class Wip:
         self._x_min = np.array([-5.0, -np.pi / 2, -1e6, -1e6])
         self._x_max = np.array([+5.0, +np.pi / 2, +1e6, +1e6])
         self._u = np.array([0.0])  # Fx aplicada a ruedas
-        self._u_max = np.array([(self._M + self._m) * 1.5])  # Fx máxima
+        self._u_max = np.array([(self._M + self._m) * 1.5])  # Fx máxima CAMBIAR ?
+        self._dist = np.array([0.0])  # disturbance aplicada por el usuario
 
         # tiempos (en s)
         self._Ts = 0.01  # tiempo de muestreo simulación
@@ -36,6 +37,9 @@ class Wip:
         self._x = x  # se impone un estado
         # calculado con ecuacion de movimiento
 
+    def SetDisturbance(self, dist):
+        self._dist = dist
+
     def SetActuator(self, u):
         for k in range(len(u)):
             if np.abs(u[k]) > self._u_max[k]:
@@ -43,7 +47,7 @@ class Wip:
 
         self._u = u
 
-    def _modelo_wip(self, t, x, u):
+    def _modelo_wip(self, t, x, u, dist):
         """acá se define M, C, G, Fq para luego definir xdot"""
 
         theta = x[1]
@@ -51,7 +55,7 @@ class Wip:
         m = self._m
         M = self._M
         L = self._L
-        Fx = u[0]
+        Fx = u[0] + dist[0]
 
         Mq = np.array([[M + m, -m * L * np.cos(theta)], [np.cos(theta), -L]])
 
@@ -71,7 +75,10 @@ class Wip:
         """resuelve edo en un pequeño tramo temporal para actualizar estado físico"""
         x0 = self._x
         x = solve_ivp(
-            partial(self._modelo_wip, u=self._u), (self._t0, self._tf), x0, method="BDF"
+            partial(self._modelo_wip, u=self._u, dist=self._dist),
+            (self._t0, self._tf),
+            x0,
+            method="BDF",
         )
 
         self._x = ((x.y).T)[-1, :]  # se queda con último estado calculado
@@ -84,12 +91,8 @@ class Wip:
                 self._x[3] = 0.0
         elif self._x[1] <= -np.pi / 2:
             self._x[1] = -np.pi / 2
-            if self._x[3] > 0:
+            if self._x[3] < 0:
                 self._x[3] = 0.0
-
-        # por el momento no hacemos restricciones artificiales:
-        # for k in range(len(self._x)):
-        #     self._x[k] = max(self._x_min[k], min(self._x[k], self._x_max[k]))
 
     def GetSensors(self):
         return self._x

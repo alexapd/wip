@@ -16,8 +16,6 @@ fx_dist = 0.0  # fuerza Fx asociada a disturbance hecha por usuario
 pid_out = 0.0  # fuerza Fx asociada a controlador pid ángulo
 mv_out = np.array([0.0])  # valor físico al que se traduce
 
-MV_USER_TO_OUT = wip._u_max[0]  ## CAMBIAR?
-
 F_DIST = 20.0  # impulsos/empujones al wip por parte del usuario
 
 # referencias
@@ -146,9 +144,9 @@ def update_display():
     mode = "Auto" if auto else "Manual"
 
     mode_text = f"Modo: {mode}"
-    fx_control_text = f"Fx control = {pid_out:.2f} N"  ##
-    dist_text = f"Perturbación = {fx_dist:.2f} N"  ##
-    fx_text = f"Fx total = {wip._u[0]:.2f} N"
+    fx_control_text = f"Fx control = {wip._u[0]:.2f} N"  ##
+    dist_text = f"Perturbación = {wip._dist[0]:.2f} N"  ##
+    fx_text = f"Fx total = {wip._u[0] + wip._dist[0]:.2f} N"
 
     screen.blit(
         font.render(mode_text, True, (255, 255, 255)),
@@ -194,24 +192,17 @@ def u_fun():  # controlador pid ángulo + f_dist, luego retorna mv_out
 
     pid_out = pid_out + control_theta
 
-    # CAMBIAR ?
-    pid_out = np.clip(
-        pid_out,
-        -wip._u_max[0],
-        wip._u_max[0],
-    )
-
     error_theta_old2 = error_theta_old
     error_theta_old = error_theta
 
-    # CAMBIAR ?
-    mv_out[0] = pid_out + fx_dist
-    # recordar limitar con wip u max
+    # pid_out = 0  # añadir esta línea para probar si
+
+    mv_out[0] = pid_out
 
     return mv_out
 
 
-def handle_keyboard(wip):
+def handle_keyboard():
 
     global auto, fx_dist
 
@@ -255,11 +246,13 @@ def main():
 
     while True:
 
-        handle_keyboard(wip)
+        handle_keyboard()
 
         mv_out = u_fun()
 
-        wip.SetActuator(mv_out)
+        wip.SetActuator(mv_out)  # con saturación de actuador incluida
+        wip.SetDisturbance(np.array([fx_dist]))  # fuerza externa, no se satura
+
         wip.UpdateState()
 
         update_display()
@@ -270,10 +263,11 @@ def main():
             f"theta={wip._x[1]:+.3f}, "
             f"xdot={wip._x[2]:+.3f}, "
             f"thetadot={wip._x[3]:+.3f}, "
-            f"Fx={wip._u[0]:+.3f}"
+            f"F_act={wip._u[0]:+.3f}, "
+            f"F_dist={wip._dist[0]:+.3f}, "
+            f"Fx_total={wip._u[0] + wip._dist[0]:+.3f}"
         )
 
-        # hacer un time.wait? o bien un pygame.clock CAMBIAR?
         clock.tick(100)  # concuerda con wip._Ts = 0.01
 
 
