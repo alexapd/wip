@@ -24,3 +24,5 @@ Siguientes pasos:
 - separación fuerza del actuador y fx_dist (disturbance por usuario)
 
 - término de simulación una vez que péndulo toca el chasis
+
+- opción de guardar datos en archivo .csv

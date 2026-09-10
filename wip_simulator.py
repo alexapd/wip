@@ -5,6 +5,7 @@ import sys
 # import time
 import numpy as np
 import pygame
+from pathlib import Path
 
 from wip_model import Wip
 
@@ -39,6 +40,41 @@ XMAX = 680
 YMAX = 600
 screen = None
 W2S = 25  # factor de conversión "world to screen"
+
+
+def guardar_data_sim(data_sim):
+    data_folder = Path("datos")
+    data_folder.mkdir(exist_ok=True)
+
+    i = 1
+
+    while True:
+        filename = data_folder / f"wip_simulation_data_{i}.csv"
+
+        if not filename.exists():
+            break
+
+        i += 1
+
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(f"# Kp_theta={Kp_theta}\n")
+        file.write(f"# Ki_theta={Ki_theta}\n")
+        file.write(f"# Kd_theta={Kd_theta}\n")
+
+        file.write(f"# M={wip._M}\n")
+        file.write(f"# m={wip._m}\n")
+        file.write(f"# L={wip._L}\n")
+        file.write(f"# r={wip._r}\n")
+
+        file.write("t,x,theta,xdot,thetadot,F_act,F_dist,Fx_total\n")
+
+        np.savetxt(
+            file,
+            np.array(data_sim),
+            delimiter=",",
+        )
+
+    print(f"Datos guardados en: {filename}")
 
 
 def update_display():
@@ -240,6 +276,8 @@ def init_display():
 
 def main():
 
+    data_sim = []  # datos de simulación por guardar
+
     init_display()
 
     clock = pygame.time.Clock()
@@ -253,9 +291,34 @@ def main():
         wip.SetActuator(mv_out)  # con saturación de actuador incluida
         wip.SetDisturbance(np.array([fx_dist]))  # fuerza externa, no se satura
 
-        wip.UpdateState()
+        colision = wip.UpdateState()
+
+        # guardar los datos [t, x, theta, xdot, thetadot, fx_actuador, fx_dist, fx_total]
+        data_sim.append(
+            [
+                wip._t,
+                wip._x[0],
+                wip._x[1],
+                wip._x[2],
+                wip._x[3],
+                wip._u[0],
+                wip._dist[0],
+                wip._u[0] + wip._dist[0],
+            ]
+        )
 
         update_display()
+
+        if colision:
+            pygame.quit()
+
+            print("\nEl péndulo chocó con el chasis.")
+            resp = input("¿Quieres guardar los datos de la simulación? [s/n]: ")
+
+            if resp.lower() == "s":
+                guardar_data_sim(data_sim)
+
+            sys.exit()
 
         print(
             f"t={wip._t:.2f}, "

@@ -73,7 +73,9 @@ class Wip:
 
     def UpdateState(self):
         """resuelve edo en un pequeño tramo temporal para actualizar estado físico"""
+
         x0 = self._x
+
         x = solve_ivp(
             partial(self._modelo_wip, u=self._u, dist=self._dist),
             (self._t0, self._tf),
@@ -84,15 +86,19 @@ class Wip:
         self._x = ((x.y).T)[-1, :]  # se queda con último estado calculado
         self._t += self._Ts  # se actualiza tiempo de simulación
 
+        colision = False
+
         # restricción física del chasis robot
         if self._x[1] >= np.pi / 2:
             self._x[1] = np.pi / 2
-            if self._x[3] > 0:
-                self._x[3] = 0.0
+            self._x[3] = 0.0
+            colision = True
         elif self._x[1] <= -np.pi / 2:
             self._x[1] = -np.pi / 2
-            if self._x[3] < 0:
-                self._x[3] = 0.0
+            self._x[3] = 0.0
+            colision = True
+
+        return colision
 
     def GetSensors(self):
         return self._x
