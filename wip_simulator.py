@@ -11,12 +11,12 @@ from wip_model import Wip
 # primero, cargar el modelo
 wip = Wip()
 
-# variable manipulada [xdot]
+# variable manipulada
 fx_dist = 0.0  # fuerza Fx asociada a disturbance hecha por usuario
 pid_out = 0.0  # fuerza Fx asociada a controlador pid ángulo
 mv_out = np.array([0.0])  # valor físico al que se traduce
 
-MV_USER_TO_OUT = wip._u_max[0]  ## CAMBIAR SI ES NECESARIO
+MV_USER_TO_OUT = wip._u_max[0]  ## CAMBIAR?
 
 F_DIST = 20.0  # impulsos/empujones al wip por parte del usuario
 
@@ -194,7 +194,7 @@ def u_fun():  # controlador pid ángulo + f_dist, luego retorna mv_out
 
     pid_out = pid_out + control_theta
 
-    # momentáneamente
+    # CAMBIAR ?
     pid_out = np.clip(
         pid_out,
         -wip._u_max[0],
@@ -204,7 +204,7 @@ def u_fun():  # controlador pid ángulo + f_dist, luego retorna mv_out
     error_theta_old2 = error_theta_old
     error_theta_old = error_theta
 
-    # por el momento
+    # CAMBIAR ?
     mv_out[0] = pid_out + fx_dist
     # recordar limitar con wip u max
 
@@ -242,7 +242,7 @@ def init_display():
     global screen
 
     pygame.init()
-    screen = pygame.display.set_mode((XMAX, YMAX))  # resolver screen
+    screen = pygame.display.set_mode((XMAX, YMAX))
     pygame.display.set_caption("WIP")
     # pygame.key.set_repeat(1, 50)
 
@@ -273,12 +273,9 @@ def main():
             f"Fx={wip._u[0]:+.3f}"
         )
 
-        # hacer un time.wait? o bien un pygame.clock
+        # hacer un time.wait? o bien un pygame.clock CAMBIAR?
         clock.tick(100)  # concuerda con wip._Ts = 0.01
 
 
 if __name__ == "__main__":
     main()
-
-# próximos cambios: controlador para x_ref
-# y modo automático en vez de manual
