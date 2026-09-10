@@ -21,5 +21,6 @@ Siguientes pasos:
 - agregar variables como inercia
 
 ### 10 de septiembre 2026
-separación fuerza del actuador y fx_dist (disturbance por usuario)
+- separación fuerza del actuador y fx_dist (disturbance por usuario)
 
+- término de simulación una vez que péndulo toca el chasis
