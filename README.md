@@ -24,3 +24,5 @@
 - agregar variables como inercia y centro de masa y poder cambiarlas
 
 - simular el motor que se ocupará (corriente, etc)
+
+- implementar opción de guardado independiente de si péndulo toca el chasis
