@@ -2,7 +2,7 @@
 
 import sys
 
-# import time
+import time
 import numpy as np
 import pygame
 from pathlib import Path
@@ -41,8 +41,50 @@ YMAX = 600
 screen = None
 W2S = 25  # factor de conversión "world to screen"
 
+# variables para guardar datos simulación
+data_full = False
+k_data = 0
+k_data_samples = 10000
+record_size = 8
+data_sim = np.zeros((k_data_samples, record_size))  # datos de simulación por guardar
 
-def guardar_data_sim(data_sim):
+
+def store_data():
+    """guarda datos del frame en el circular array"""
+    global k_data, data_full
+
+    # guardar los datos [t, x, theta, xdot, thetadot, fx_actuador, fx_dist, fx_total]
+    data_sim[k_data, :] = np.r_[
+        wip._t,
+        wip._x[0],
+        wip._x[1],
+        wip._x[2],
+        wip._x[3],
+        wip._u[0],
+        wip._dist[0],
+        wip._u[0] + wip._dist[0],
+    ]
+    k_data += 1
+
+    if k_data == k_data_samples:
+        k_data = 0
+        data_full = True
+
+
+def arrange_data(data_sim):
+    """ordena los datos del circular array de antiguo a nuevo"""
+
+    if not data_full:
+        return data_sim[:k_data, :]
+
+    aux1 = data_sim[:k_data, :]  # los primeros valores
+    aux2 = data_sim[-(k_data_samples - k_data) :, :]  # el resto
+    data_sim = np.r_[aux2, aux1]  # poner verticalmente
+
+    return data_sim
+
+
+def guardar_archivo_data(data_sim):
     data_folder = Path("datos")
     data_folder.mkdir(exist_ok=True)
 
@@ -68,13 +110,26 @@ def guardar_data_sim(data_sim):
 
         file.write("t,x,theta,xdot,thetadot,F_act,F_dist,Fx_total\n")
 
+        data_ordenada = arrange_data(data_sim)
+
         np.savetxt(
             file,
-            np.array(data_sim),
+            data_ordenada,
             delimiter=",",
         )
 
     print(f"Datos guardados en: {filename}")
+
+
+def termino_simulacion():
+    pygame.quit()
+
+    resp = input("¿Quieres guardar los datos de la simulación? [s/n]: ")
+
+    if resp.lower() == "s":
+        guardar_archivo_data(data_sim)
+
+    sys.exit()
 
 
 def update_display():
@@ -91,9 +146,9 @@ def update_display():
     largo_pendulo = int(W2S * wip._L)
 
     # representación gráfica robot (se podría modificar)
-    body_width = 70
-    body_height = 30
-    wheel_radius = 15
+    body_width = 50
+    body_height = 110
+    wheel_radius = 30
 
     screen.fill((0, 0, 0))
 
@@ -106,27 +161,10 @@ def update_display():
         2,
     )
 
-    # ruedas
+    # cuerpo y ruedas del wip
     wheel_y = floor_y - wheel_radius
+    front_wheel = x_screen
 
-    left_wheel_x = x_screen - body_width // 2
-    right_wheel_x = x_screen + body_width // 2
-
-    pygame.draw.circle(
-        screen,
-        (100, 100, 100),
-        (left_wheel_x, wheel_y),
-        wheel_radius,
-    )
-
-    pygame.draw.circle(
-        screen,
-        (100, 100, 100),
-        (right_wheel_x, wheel_y),
-        wheel_radius,
-    )
-
-    # cuerpo de WIP
     body_bottom = wheel_y
     body_top = body_bottom - body_height
 
@@ -139,6 +177,13 @@ def update_display():
             body_width,
             body_height,
         ),
+    )
+
+    pygame.draw.circle(
+        screen,
+        (100, 100, 100),
+        (front_wheel, wheel_y),
+        wheel_radius,
     )
 
     # péndulo
@@ -231,7 +276,14 @@ def u_fun():  # controlador pid ángulo + f_dist, luego retorna mv_out
     error_theta_old2 = error_theta_old
     error_theta_old = error_theta
 
-    # pid_out = 0  # añadir esta línea para probar si
+    # pid_out = 0  # añadir esta línea para probar física del modelo
+
+    # para evitar windup en caso de que Ki distinto de 0
+    pid_out = np.clip(
+        pid_out,
+        -wip._u_max[0],
+        wip._u_max[0],
+    )
 
     mv_out[0] = pid_out
 
@@ -245,8 +297,7 @@ def handle_keyboard():
     for event in pygame.event.get():
 
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+            termino_simulacion()
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
@@ -276,8 +327,6 @@ def init_display():
 
 def main():
 
-    data_sim = []  # datos de simulación por guardar
-
     init_display()
 
     clock = pygame.time.Clock()
@@ -294,31 +343,13 @@ def main():
         colision = wip.UpdateState()
 
         # guardar los datos [t, x, theta, xdot, thetadot, fx_actuador, fx_dist, fx_total]
-        data_sim.append(
-            [
-                wip._t,
-                wip._x[0],
-                wip._x[1],
-                wip._x[2],
-                wip._x[3],
-                wip._u[0],
-                wip._dist[0],
-                wip._u[0] + wip._dist[0],
-            ]
-        )
+        store_data()
 
         update_display()
 
         if colision:
-            pygame.quit()
-
             print("\nEl péndulo chocó con el chasis.")
-            resp = input("¿Quieres guardar los datos de la simulación? [s/n]: ")
-
-            if resp.lower() == "s":
-                guardar_data_sim(data_sim)
-
-            sys.exit()
+            termino_simulacion()
 
         print(
             f"t={wip._t:.2f}, "

@@ -14,8 +14,15 @@
 
 - opción de guardar datos en archivo .csv
 
+### 16 de septiembre 2026
+- corregir representación wip
+
+- saturar pid_out para evitar windup en caso de que Ki distinto de 0
+
+- implementar circular array para guardar datos
+
 ### Próximas mejoras
-- ajustar mejor los valores de Kp, Ki, Kd
+- ajustar mejor los valores de Kp, Ki, Kd ***
 
 - controlador para el desplazamiento en x (modo auto: usuario elige x_ref)
 
@@ -25,4 +32,4 @@
 
 - simular el motor que se ocupará (corriente, etc)
 
-- implementar opción de guardado independiente de si péndulo toca el chasis
+- masa máxima: se la puede el controlador/los motores? inercia distinta. hacer análisis más profundo
