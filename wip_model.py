@@ -12,9 +12,9 @@ class Wip:
 
         # parámetros físicos
         self._r = 2.0  # radio rueda
-        self._m = 0.5  # (kg) masa en el péndulo
-        self._M = 2.0  # (kg) masa robot
-        self._L = 5  # largo del péndulo
+        self._m = 0.5  # (kg) masa puntual
+        self._M = 2.0  # (kg) masa de base (2 ruedas y su eje)
+        self._L = 5  # distancia desde eje de ruedas hasta centro de masa
         # self._l = 10  # largo del eje de las ruedas
 
         self._g = 9.81  # aceleración gravedad
@@ -88,7 +88,7 @@ class Wip:
 
         colision = False
 
-        # restricción física del chasis robot
+        # restricción física del robot por el suelo
         if self._x[1] >= np.pi / 2:
             self._x[1] = np.pi / 2
             self._x[3] = 0.0

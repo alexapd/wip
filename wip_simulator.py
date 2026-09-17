@@ -2,7 +2,7 @@
 
 import sys
 
-import time
+# import time
 import numpy as np
 import pygame
 from pathlib import Path
@@ -142,12 +142,10 @@ def update_display():
     floor_y = 450
     x_screen = int(XMAX / 2 + W2S * x)
 
-    # dimensiones físicas
+    # distancia de eje de ruedas a centro de masa
     largo_pendulo = int(W2S * wip._L)
 
-    # representación gráfica robot (se podría modificar)
-    body_width = 50
-    body_height = 110
+    # representación gráfica robot
     wheel_radius = 30
 
     screen.fill((0, 0, 0))
@@ -161,34 +159,20 @@ def update_display():
         2,
     )
 
-    # cuerpo y ruedas del wip
+    # ruedas del wip
     wheel_y = floor_y - wheel_radius
-    front_wheel = x_screen
-
-    body_bottom = wheel_y
-    body_top = body_bottom - body_height
-
-    pygame.draw.rect(
-        screen,
-        (0, 150, 255),
-        pygame.Rect(
-            x_screen - body_width // 2,
-            body_top,
-            body_width,
-            body_height,
-        ),
-    )
+    wheel_x = x_screen
 
     pygame.draw.circle(
         screen,
-        (100, 100, 100),
-        (front_wheel, wheel_y),
+        (0, 0, 255),
+        (wheel_x, wheel_y),
         wheel_radius,
     )
 
     # péndulo
     pivot_x = x_screen
-    pivot_y = body_top
+    pivot_y = wheel_y
 
     mass_x = pivot_x - int(largo_pendulo * np.sin(theta))
     mass_y = pivot_y - int(largo_pendulo * np.cos(theta))
@@ -201,7 +185,7 @@ def update_display():
         5,
     )
 
-    # masa puntual m
+    # masa puntual m que representa centro de masa
     mass_radius = 12
 
     pygame.draw.circle(
@@ -253,7 +237,7 @@ def update_display():
     pygame.display.flip()
 
 
-def u_fun():  # controlador pid ángulo + f_dist, luego retorna mv_out
+def u_fun():  # controlador pid ángulo luego retorna mv_out
     """en modo auto: (próximamente) usuario indica x_ref
     en modo manual: usuario puede provocar perturbaciones
     """
@@ -348,7 +332,7 @@ def main():
         update_display()
 
         if colision:
-            print("\nEl péndulo chocó con el chasis.")
+            print("\nEl péndulo chocó con el suelo.")
             termino_simulacion()
 
         print(
