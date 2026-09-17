@@ -15,7 +15,7 @@ class Wip:
         self._m = 0.5  # (kg) masa puntual
         self._M = 2.0  # (kg) masa de base (2 ruedas y su eje)
         self._L = 5  # distancia desde eje de ruedas hasta centro de masa
-        self._J = 100  # (kg*m^2) momento de inercia del cuerpo
+        self._J = 0  # (kg*m^2) momento de inercia del cuerpo
         # self._l = 10  # largo del eje de las ruedas
 
         self._g = 9.81  # aceleración gravedad

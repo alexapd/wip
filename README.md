@@ -22,14 +22,12 @@
 - implementar circular array para guardar datos
 
 ### Próximas mejoras
-- ajustar mejor los valores de Kp, Ki, Kd ***
-
 - controlador para el desplazamiento en x (modo auto: usuario elige x_ref)
 
-- implementar otros tipos de controladores (estimar/predecir parámetros)
+- posibilidad de ajustar valores Ki, Kp, Kd con widgets (parte didáctica)
 
-- agregar variables como inercia y centro de masa y poder cambiarlas
+- ajustar con variables nominales de modelo
 
-- simular el motor que se ocupará (corriente, etc)
+- testear controladores con programa externo y ver valores adecuados
 
-- masa máxima: se la puede el controlador/los motores? inercia distinta. hacer análisis más profundo
+- cambiar tipo de controlador (estimar/predecir parámetros)
