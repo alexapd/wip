@@ -15,6 +15,7 @@ class Wip:
         self._m = 0.5  # (kg) masa puntual
         self._M = 2.0  # (kg) masa de base (2 ruedas y su eje)
         self._L = 5  # distancia desde eje de ruedas hasta centro de masa
+        self._J = 100  # (kg*m^2) momento de inercia del cuerpo
         # self._l = 10  # largo del eje de las ruedas
 
         self._g = 9.81  # aceleración gravedad
@@ -55,9 +56,22 @@ class Wip:
         m = self._m
         M = self._M
         L = self._L
+        J = self._J
         Fx = u[0] + dist[0]
 
-        Mq = np.array([[M + m, -m * L * np.cos(theta)], [np.cos(theta), -L]])
+        # en modelo más realista: se le incluye J y Jw
+        Mq = np.array(
+            [
+                [
+                    M + m,
+                    -m * L * np.cos(theta),
+                ],
+                [
+                    np.cos(theta),
+                    -(L + J / (m * L)),
+                ],
+            ]
+        )
 
         b = np.array(
             [[Fx - m * L * theta_dot**2 * np.sin(theta)], [-self._g * np.sin(theta)]]
