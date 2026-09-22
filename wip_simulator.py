@@ -13,14 +13,17 @@ from wip_model import Wip
 wip = Wip()
 
 # variable manipulada
-fx_dist = 0.0  # fuerza Fx asociada a disturbance hecha por usuario
-pid_out = 0.0  # fuerza Fx asociada a controlador pid ángulo
 mv_out = np.array([0.0])  # valor físico al que se traduce
 
+fx_dist = 0.0  # fuerza Fx asociada a disturbance hecha por usuario
 F_DIST = 20.0  # impulsos/empujones al wip por parte del usuario
 
+# controladores
+pid_out_theta = 0.0  # fuerza Fx asociada a controlador pid ángulo
+pid_out_x = 0.0  # representa referencia angular necesaria
+
 # referencias
-# x_ref = 0.0
+x_ref = 0.0
 theta_ref = 0.0
 
 # modo de control (automático o manual)
@@ -31,9 +34,17 @@ Kp_theta = 200.0
 Ki_theta = 0.0
 Kd_theta = 50.0
 
+Kp_x = 0.05
+Ki_x = 0.0
+Kd_x = 0.0
+
 error_theta = 0.0
 error_theta_old = 0.0
 error_theta_old2 = 0.0
+
+error_x = 0.0
+error_x_old = 0.0
+error_x_old2 = 0.0
 
 # variables gráficas
 XMAX = 680
@@ -213,6 +224,9 @@ def update_display():
     dist_text = f"Perturbación = {wip._dist[0]:.2f} N"  ##
     fx_text = f"Fx total = {wip._u[0] + wip._dist[0]:.2f} N"
 
+    x_ref_text = f"x_ref = {x_ref:.2f} m"
+    x_text = f"x = {wip._x[0]:.2f} m"
+
     screen.blit(
         font.render(mode_text, True, (255, 255, 255)),
         (15, 15),
@@ -233,16 +247,55 @@ def update_display():
         (15, 90),
     )
 
+    if auto:
+        screen.blit(
+            font.render(x_text, True, (255, 255, 255)),
+            (300, 15),
+        )
+        screen.blit(
+            font.render(x_ref_text, True, (255, 255, 255)),
+            (300, 40),
+        )
+
     # finalmente, mostrar todo
     pygame.display.flip()
 
 
+def control_posicion():
+    """calcula theta_ref para que controlador theta haga que robot se desplace a x_ref"""
+
+    global error_x, error_x_old, error_x_old2
+    global pid_out_x
+
+    x = wip._x[0]
+
+    error_x = x_ref - x
+
+    K0 = Kp_x + wip._Ts * Ki_x + Kd_x / wip._Ts
+    K1 = -Kp_x - 2 * Kd_x / wip._Ts
+    K2 = Kd_x / wip._Ts
+
+    control_x = K0 * error_x + K1 * error_x_old + K2 * error_x_old2
+
+    pid_out_x = pid_out_x + control_x
+
+    error_x_old2 = error_x_old
+    error_x_old = error_x
+
+    theta_ref_max = wip._theta_ref_max
+
+    pid_out_x = np.clip(pid_out_x, -theta_ref_max, theta_ref_max)
+
+    return pid_out_x
+
+
 def u_fun():  # controlador pid ángulo luego retorna mv_out
-    """en modo auto: (próximamente) usuario indica x_ref
-    en modo manual: usuario puede provocar perturbaciones
-    """
+    """controlador pid de ángulo a partir de theta_ref
+    modo manual: theta_ref = 0
+    modo auto: theta_ref fijada por controlador de posición"""
+
     global error_theta, error_theta_old, error_theta_old2
-    global pid_out
+    global pid_out_theta
 
     theta = wip._x[1]
 
@@ -255,21 +308,21 @@ def u_fun():  # controlador pid ángulo luego retorna mv_out
 
     control_theta = K0 * error_theta + K1 * error_theta_old + K2 * error_theta_old2
 
-    pid_out = pid_out + control_theta
+    pid_out_theta = pid_out_theta + control_theta
 
     error_theta_old2 = error_theta_old
     error_theta_old = error_theta
 
-    # pid_out = 0  # añadir esta línea para probar física del modelo
+    # pid_out_theta = 0  # añadir esta línea para probar física del modelo
 
     # para evitar windup en caso de que Ki distinto de 0
-    pid_out = np.clip(
-        pid_out,
+    pid_out_theta = np.clip(
+        pid_out_theta,
         -wip._u_max[0],
         wip._u_max[0],
     )
 
-    mv_out[0] = pid_out
+    mv_out[0] = pid_out_theta
 
     return mv_out
 
@@ -288,9 +341,9 @@ def handle_keyboard():
                 fx_dist -= F_DIST
             elif event.key == pygame.K_RIGHT:
                 fx_dist += F_DIST
-            # if event.key == pygame.K_a:
-            #     auto = True
-            if event.key == pygame.K_m:
+            elif event.key == pygame.K_a:
+                auto = True
+            elif event.key == pygame.K_m:
                 auto = False
 
         # dejar de apretar tecla significa dejar de causar perturbación
@@ -309,8 +362,24 @@ def init_display():
     # pygame.key.set_repeat(1, 50)
 
 
-def main():
+def escoger_parametros():
+    global x_ref
+    global Kp_x, Ki_x, Kd_x
 
+    print("\n --- Control de posición ---")
+
+    print("recomendación: escoger x_ref entre -5 m y 5 m")
+    x_ref = float(input("x_ref [m]: "))
+
+    Kp_x = float(input("Kp_x: "))
+    Ki_x = float(input("Ki_x: "))
+    Kd_x = float(input("Kd_x: "))
+
+
+def main():
+    global theta_ref
+
+    escoger_parametros()
     init_display()
 
     clock = pygame.time.Clock()
@@ -318,6 +387,11 @@ def main():
     while True:
 
         handle_keyboard()
+
+        if auto:
+            theta_ref = control_posicion()
+        else:
+            theta_ref = 0.0
 
         mv_out = u_fun()
 

@@ -26,6 +26,9 @@ class Wip:
         self._x_max = np.array([+5.0, +np.pi / 2, +1e6, +1e6])
         self._u = np.array([0.0])  # Fx aplicada a ruedas (por parte del actuador)
         self._u_max = np.array([(self._M + self._m) * 1.5])  # Fx máxima CAMBIAR ?
+        self._theta_ref_max = np.deg2rad(
+            10
+        )  # límite de theta_ref que podría pedir controlador x
         self._dist = np.array([0.0])  # disturbance aplicada por el usuario
 
         # tiempos (en s)

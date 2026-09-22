@@ -21,9 +21,10 @@
 
 - implementar circular array para guardar datos
 
-### Próximas mejoras
-- controlador para el desplazamiento en x (modo auto: usuario elige x_ref)
+### 22 de septiembre 2026
+- controlador para el desplazamiento en x (modo auto: usuario elige x_ref y (Kp_x, Ki_x, Kd_x))
 
+### Próximas mejoras
 - posibilidad de ajustar valores Ki, Kp, Kd con widgets (parte didáctica)
 
 - ajustar con variables nominales de modelo
