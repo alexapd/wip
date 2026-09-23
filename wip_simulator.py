@@ -391,7 +391,7 @@ def main():
         if auto:
             theta_ref = control_posicion()
         else:
-            theta_ref = 0.0
+            theta_ref = np.deg2rad(2.0)
 
         mv_out = u_fun()
 
@@ -411,8 +411,8 @@ def main():
 
         print(
             f"t={wip._t:.2f}, "
-            f"x={wip._x[0]:+.3f}, "
-            f"theta={wip._x[1]:+.3f}, "
+            f"x={wip._x[0]:+.5f}, "
+            f"theta={wip._x[1]:+.5f}, "
             f"xdot={wip._x[2]:+.3f}, "
             f"thetadot={wip._x[3]:+.3f}, "
             f"F_act={wip._u[0]:+.3f}, "

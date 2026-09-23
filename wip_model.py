@@ -11,7 +11,7 @@ class Wip:
     def __init__(self):
 
         # parámetros físicos
-        self._r = 2.0  # radio rueda
+        self._r = 0.05  # radio rueda estimado de foto materiales
         self._m = 0.5  # (kg) masa puntual
         self._M = 2.0  # (kg) masa de base (2 ruedas y su eje)
         self._L = 5  # distancia desde eje de ruedas hasta centro de masa
@@ -25,7 +25,9 @@ class Wip:
         self._x_min = np.array([-5.0, -np.pi / 2, -1e6, -1e6])
         self._x_max = np.array([+5.0, +np.pi / 2, +1e6, +1e6])
         self._u = np.array([0.0])  # Fx aplicada a ruedas (por parte del actuador)
-        self._u_max = np.array([(self._M + self._m) * 1.5])  # Fx máxima CAMBIAR ?
+        self._u_max = np.array(
+            [20.0]
+        )  # Fx máxima (ahora es valor aprox según especificaciones materiales)
         self._theta_ref_max = np.deg2rad(
             10
         )  # límite de theta_ref que podría pedir controlador x
