@@ -30,9 +30,9 @@ theta_ref = 0.0
 auto = False
 
 # parámetros y variables del controlador PID THETA
-Kp_theta = 200.0
-Ki_theta = 0.0
-Kd_theta = 50.0
+Kp_theta = 20.0
+Ki_theta = 1.67
+Kd_theta = 20.0
 
 Kp_x = 0.05
 Ki_x = 0.0
@@ -308,7 +308,7 @@ def u_fun():  # controlador pid ángulo luego retorna mv_out
 
     control_theta = K0 * error_theta + K1 * error_theta_old + K2 * error_theta_old2
 
-    pid_out_theta = pid_out_theta + control_theta
+    pid_out_theta_raw = pid_out_theta + control_theta
 
     error_theta_old2 = error_theta_old
     error_theta_old = error_theta
@@ -317,9 +317,17 @@ def u_fun():  # controlador pid ángulo luego retorna mv_out
 
     # para evitar windup en caso de que Ki distinto de 0
     pid_out_theta = np.clip(
-        pid_out_theta,
+        pid_out_theta_raw,
         -wip._u_max[0],
         wip._u_max[0],
+    )
+
+    print(
+        f"theta_ref={theta_ref:+.4f}, "
+        f"theta={theta:+.4f}, "
+        f"error={error_theta:+.4f}, "
+        f"pid_raw={pid_out_theta_raw:+.2f}, "
+        f"pid_sat={pid_out_theta:+.2f}"
     )
 
     mv_out[0] = pid_out_theta
@@ -391,7 +399,7 @@ def main():
         if auto:
             theta_ref = control_posicion()
         else:
-            theta_ref = np.deg2rad(2.0)
+            theta_ref = np.deg2rad(0.0)
 
         mv_out = u_fun()
 
@@ -409,16 +417,16 @@ def main():
             print("\nEl péndulo chocó con el suelo.")
             termino_simulacion()
 
-        print(
-            f"t={wip._t:.2f}, "
-            f"x={wip._x[0]:+.5f}, "
-            f"theta={wip._x[1]:+.5f}, "
-            f"xdot={wip._x[2]:+.3f}, "
-            f"thetadot={wip._x[3]:+.3f}, "
-            f"F_act={wip._u[0]:+.3f}, "
-            f"F_dist={wip._dist[0]:+.3f}, "
-            f"Fx_total={wip._u[0] + wip._dist[0]:+.3f}"
-        )
+        # print(
+        #     f"t={wip._t:.2f}, "
+        #     f"x={wip._x[0]:+.5f}, "
+        #     f"theta={wip._x[1]:+.5f}, "
+        #     f"xdot={wip._x[2]:+.3f}, "
+        #     f"thetadot={wip._x[3]:+.3f}, "
+        #     f"F_act={wip._u[0]:+.3f}, "
+        #     f"F_dist={wip._dist[0]:+.3f}, "
+        #     f"Fx_total={wip._u[0] + wip._dist[0]:+.3f}"
+        # )
 
         clock.tick(100)  # concuerda con wip._Ts = 0.01
 

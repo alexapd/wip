@@ -24,11 +24,22 @@
 ### 22 de septiembre 2026
 - controlador para el desplazamiento en x (modo auto: usuario elige x_ref y (Kp_x, Ki_x, Kd_x))
 
+- desarrollo archivo wip_values para buscar valores óptimos de controladores PID
+
+- desarrollo archivo wip_plot para graficar 2 mejores y 2 peores combinaciones de PID
+
 ### Próximas mejoras
 - posibilidad de ajustar valores Ki, Kp, Kd con widgets (parte didáctica)
 
 - ajustar con variables nominales de modelo
 
-- testear controladores con programa externo y ver valores adecuados
+- mejorar optimizador de wip_values
+-- visualización data
+-- aumentar eficiencia código
+--cambiar algoritmo de búsqueda
+--cambiar configuraciones de differential evolution
+--etc
+
+- optimizar K's de controlador de theta y luego de x con optimizador de wip_values
 
 - cambiar tipo de controlador (estimar/predecir parámetros)
